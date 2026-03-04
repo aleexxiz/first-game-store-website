@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Hub | Play 4 Amazing Games</title>
+    <meta name="description"
+        content="A premium arcade experience with 4 unique games: Tic-Tac-Toe, Rock Paper Scissors, Word Guessing, and Battle Quest.">
+    <!-- Retro Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;900&family=Press+Start+2P&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Extra Retro Fonts only for small elements or headers */
+        #arc-simulation-chamber h2,
+        .hero h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            letter-spacing: -5px;
+        }
+
+        .back-msg {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            color: black;
+        }
+
+        .game-card h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Dynamic Background Elements -->
+    <div class="grid-container"></div>
+    <div class="floating-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div id="arc-system-core">
+        <!-- Main Hub View -->
+        <main id="arc-hub-portal" class="view active">
+            <header class="hero">
+                <h1><span>ARCADE</span> HUB</h1>
+                <p>Est. 1984 // 2026 Edition</p>
+            </header>
+
+            <div class="game-grid">
+                <!-- Game Card 1: Guess The Word -->
+                <div class="game-card" data-game="guessword">
+                    <span class="card-icon">🧐</span>
+                    <h3>Guess Word</h3>
+                    <button class="btn-play">INSERT COIN</button>
+                    <div style="position: absolute; bottom: 5px; right: 8px; font-size: 10px; opacity: 0.4">LVL 1</div>
+                </div>
+
+                <!-- Game Card 2: Battle Game -->
+                <div class="game-card" data-game="battlegame">
+                    <span class="card-icon">⚔️</span>
+                    <h3>Battle Quest</h3>
+                    <button class="btn-play">START FIGHT</button>
+                </div>
+
+                <!-- Game Card 3: Rock Paper Scissors -->
+                <div class="game-card" data-game="rps">
+                    <span class="card-icon">✂️</span>
+                    <h3>Roshambo</h3>
+                    <button class="btn-play">CHALLENGE</button>
+                </div>
+
+                <!-- Game Card 4: Tic Tac Toe -->
+                <div class="game-card" data-game="tictactoe">
+                    <span class="card-icon">⭕</span>
+                    <h3>Neon Duel</h3>
+                    <button class="btn-play">2P ONLY</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Dynamic Game Container -->
+        <section id="arc-simulation-chamber" class="view">
+            <div class="game-container">
+                <button id="arc-abort-signal" class="btn-back">
+                    <span class="back-msg">EXIT HUB</span>
+                </button>
+                <div id="arc-render-zone">
+                    <!-- Game content will be injected here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Instruction Modal -->
+        <div id="arc-dialog-veil" class="modal-overlay">
+            <div class="modal">
+                <button id="arc-dialog-close" class="modal-close">&times;</button>
+                <div class="modal-header">
+                    <span id="arc-dialog-glyph">🎮</span>
+                    <h2 id="arc-dialog-header">MISSION BRIEFING</h2>
+                </div>
+                <p id="arc-dialog-content">Instructions go here...</p>
+                <button id="arc-mission-trigger" class="btn-play">START MISSION</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="main.js"></script>
+</body>
+
+</html>

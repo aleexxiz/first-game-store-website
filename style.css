@@ -1,0 +1,460 @@
+:root {
+    --neon-pink: #ff00ff;
+    --neon-blue: #00ffff;
+    --neon-yellow: #ffff00;
+    --neon-purple: #bd00ff;
+    --neon-emerald: #00ff88;
+    --bg-dark: #050510;
+    --grid-color: rgba(0, 255, 255, 0.1);
+    --glass: rgba(255, 255, 255, 0.1);
+    --font-main: 'Outfit', sans-serif;
+}
+
+@keyframes bg-glow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+body {
+    background: linear-gradient(-45deg, #050510, #1a0b2e, #0a1f2e, #050510);
+    background-size: 400% 400%;
+    animation: bg-glow 10s ease infinite;
+    color: white;
+    font-family: var(--font-main);
+    overflow: hidden;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1000px;
+}
+
+/* Floating Orbs for High Energy */
+.orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.6;
+    animation: float 15s infinite ease-in-out;
+    z-index: 1;
+    /* Move above background but below #app */
+    pointer-events: none;
+}
+
+.orb-1 {
+    width: 400px;
+    height: 400px;
+    background: var(--neon-blue);
+    top: -100px;
+    left: -100px;
+}
+
+.orb-2 {
+    width: 500px;
+    height: 500px;
+    background: var(--neon-pink);
+    bottom: -150px;
+    right: -150px;
+    animation-delay: -5s;
+}
+
+.orb-3 {
+    width: 300px;
+    height: 300px;
+    background: var(--neon-purple);
+    top: 50%;
+    left: 50%;
+    animation-delay: -10s;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    33% {
+        transform: translate(150px, 100px) scale(1.2);
+    }
+
+    66% {
+        transform: translate(-100px, 200px) scale(0.9);
+    }
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background-image:
+        linear-gradient(var(--grid-color) 2px, transparent 2px),
+        linear-gradient(90deg, var(--grid-color) 2px, transparent 2px);
+    background-size: 100px 100px;
+    transform: rotateX(60deg);
+    animation: grid-move 5s linear infinite;
+    z-index: -2;
+    mask-image: linear-gradient(to top, black, transparent);
+    pointer-events: none;
+}
+
+@keyframes grid-move {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 0 100px;
+    }
+}
+
+/* Retro Sun / Horizon effect */
+body::after {
+    content: '';
+    position: fixed;
+    bottom: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: linear-gradient(to bottom, var(--neon-pink), var(--neon-yellow), transparent);
+    filter: blur(80px);
+    opacity: 0.3;
+    border-radius: 50%;
+    z-index: -1;
+}
+
+#arc-system-core {
+    width: 100%;
+    max-width: 1100px;
+    padding: 20px;
+    z-index: 10;
+    position: relative;
+    /* Ensure it stays on top of orbs */
+}
+
+.view {
+    display: none;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.view.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) rotateX(-5deg);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+    }
+}
+
+/* Header with Retro Glitch-ish style */
+.hero {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.hero h1 {
+    font-size: 5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    position: relative;
+    display: inline-block;
+}
+
+.hero h1 span {
+    color: transparent;
+    -webkit-text-stroke: 2px var(--neon-blue);
+    text-shadow: 0 0 15px var(--neon-blue);
+}
+
+.hero p {
+    font-size: 1.5rem;
+    color: var(--neon-pink);
+    font-style: italic;
+    text-transform: uppercase;
+    margin-top: -10px;
+    letter-spacing: 2px;
+}
+
+/* CRT Scanline Effect Overlay */
+body::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 100;
+    background-size: 100% 4px, 3px 100%;
+    pointer-events: none;
+}
+
+/* Retro Cards */
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 30px;
+}
+
+.game-card {
+    background: var(--glass);
+    border: 2px solid var(--neon-blue);
+    border-radius: 0;
+    /* Retro sharp edges or slight curve? Let's go sharp with a clip */
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    position: relative;
+}
+
+.game-card:hover {
+    transform: translateY(-15px) scale(1.08) rotate(2deg);
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 30px var(--neon-pink), 0 0 60px var(--neon-purple), inset 0 0 20px var(--neon-blue);
+    background: rgba(255, 255, 255, 0.15);
+    animation: pulse-border 1s infinite alternate;
+}
+
+@keyframes pulse-border {
+    from {
+        border-color: var(--neon-pink);
+    }
+
+    to {
+        border-color: var(--neon-blue);
+    }
+}
+
+.game-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, var(--neon-purple) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: -1;
+}
+
+.game-card:hover::after {
+    opacity: 0.3;
+}
+
+.card-icon {
+    font-size: 4.5rem;
+    display: block;
+    margin-bottom: 10px;
+    transition: transform 0.3s;
+    filter: drop-shadow(0 0 10px var(--neon-blue));
+}
+
+.game-card:hover .card-icon {
+    transform: scale(1.2) rotate(-10deg);
+}
+
+.btn-play {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    padding: 10px 20px;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: 0.2s;
+}
+
+.game-card:hover .btn-play {
+    background: white;
+    color: var(--bg-dark);
+}
+
+/* Game Interface */
+.game-container {
+    background: rgba(0, 0, 0, 0.8);
+    border: 4px solid var(--neon-blue);
+    padding: 40px;
+    position: relative;
+    box-shadow: 0 0 40px var(--neon-blue);
+}
+
+.btn-back {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--neon-pink);
+    color: black;
+    border: none;
+    padding: 5px 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* TIC-TAC-TOE RETRO */
+.ttt-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 10px;
+}
+
+.ttt-cell {
+    border: 3px solid var(--neon-blue);
+    font-size: 3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.ttt-cell:hover {
+    background: var(--glass);
+}
+
+.ttt-cell.x {
+    color: var(--neon-pink);
+}
+
+.ttt-cell.o {
+    color: var(--neon-yellow);
+}
+
+/* MODAL STYLING */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
+    /* hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: var(--bg-dark);
+    border: 3px solid var(--neon-pink);
+    padding: 30px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 0 50px var(--neon-pink);
+    border-radius: 20px;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: var(--neon-pink);
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    color: white;
+    text-shadow: 0 0 10px var(--neon-pink);
+    transform: scale(1.2);
+}
+
+.modal-header {
+    margin-bottom: 20px;
+}
+
+#arc-dialog-glyph {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 10px;
+}
+
+#arc-dialog-header {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1rem;
+    color: var(--neon-blue);
+}
+
+#arc-dialog-content {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin: 20px 0;
+    color: white;
+}
+
+/* HP BAR RETRO - HIDING CONTENT */
+.hp-container {
+    width: 300px;
+    height: 40px;
+    border: 3px solid white;
+    padding: 2px;
+    position: relative;
+    overflow: hidden;
+    background: #222;
+}
+
+.hp-bar {
+    height: 100%;
+    background: var(--neon-pink);
+    width: 100%;
+    transition: 0.3s;
+    filter: blur(15px);
+    opacity: 0.2;
+}
+
+.hp-container::after {
+    content: "ENEMY HP: ???";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+}
+
+/* General Layouts */
+#arc-render-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.output-msg {
+    margin: 20px 0;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--neon-yellow);
+    font-size: 1.2rem;
+    text-shadow: 0 0 5px var(--neon-yellow);
+}
