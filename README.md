@@ -1,6 +1,10 @@
 # First Game Store Website 🎮
 
-A simple demo online game store built with HTML and CSS.
+[English](README.md) | [Español](README.es.md)
+
+---
+
+<div id="english">
 
 ## 📌 About The Project
 This project presents a fictional online game store where users can browse games in a clean and responsive interface.
@@ -16,3 +20,5 @@ A new repository was created after deployment issues prevented the previous vers
 
 ## 📂 Project Status
 Completed – Demo project for learning purposes.
+
+</div>
