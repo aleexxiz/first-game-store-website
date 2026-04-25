@@ -13,6 +13,49 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;900&family=Press+Start+2P&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+
+
+     <!-- Contenedor del selector -->
+<div class="idioma-selector">
+  <button onclick="cambiarIdioma('es')" class="btn-lang" id="btn-es">Español </button>
+  <button onclick="cambiarIdioma('en')" class="btn-lang" id="btn-en">English</button>
+</div>
+
+<style>
+  .idioma-selector {
+    top: 10px;
+    right: 10px;
+    position: fixed;    
+    display: flex;
+    gap: 10px;
+    margin: 20px;
+  }
+
+  .btn-lang {
+    padding: 8px 16px;
+    border: 2px solid #007bff;
+    background-color: white;
+    color: #007bff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+
+  .btn-lang:hover {
+    background-color: #f0f7ff;
+  }
+
+  /* Clase para resaltar el idioma actual */
+  .btn-active {
+    background-color: #007bff;
+    color: white;
+  }
+</style>
+
+
+
+
     <style>
         /* Extra Retro Fonts only for small elements or headers */
         #arc-simulation-chamber h2,

@@ -1,0 +1,108 @@
+{
+  "en": {
+    "ui": {
+      "back": "BACK",
+      "exit": "EXIT",
+      "hint": "HINT",
+      "submit": "SUBMIT",
+      "reset": "RESET",
+      "instructions_trigger": "START MISSION"
+    },
+    "games": {
+      "guessword": {
+        "title": "GUESS WORD",
+        "icon": "🧐",
+        "instructions": "Find the secret word! The system will tell you if your letters match. Type 'HINT' if you get stuck.",
+        "placeholder": "KEYWORD_",
+        "footer_hint": "TYPE 'HINT' FOR CLUE | TYPE 'EXIT' TO QUIT",
+        "words": ["ARCADE", "LEVEL", "GAMER", "COINS", "QUEST", "SCORE", "BATTLE", "LEGEND", "RETRO", "SYSTEM", "PACMAN", "PIXEL", "CODING", "MATRIX", "WIZARD", "GALAXY", "NEON", "CYBER", "VICTORY"]
+      },
+      "battlegame": {
+        "title": "BATTLE QUEST",
+        "icon": "⚔️",
+        "instructions": "The enemy HP is HIDDEN! You have 5 tries to deal EXACTLY enough damage to bring them to zero. Can you hit the bullseye?",
+        "tries": "REMAINING TRIES",
+        "victory": "🎉 CHAMPION! ENEMY DEFEATED 🎉",
+        "overkill": "OH NO! OVERKILL! ❌",
+        "gameover": "GAME OVER! ENEMY SURVIVED... 😔",
+        "sensors_strong": "SENSORS: TARGET IS STILL STANDING STRONG.",
+        "sensors_half": "SENSORS: HALFWAY POINT REACHED.",
+        "sensors_critical": "SENSORS: TARGET CRITICAL. DO NOT OVERKILL."
+      },
+      "rps": {
+        "title": "ROSHAMBO",
+        "icon": "✂️",
+        "instructions": "Classic Rock-Paper-Scissors. Best of 5 rounds wins the prize. Choose wisely!",
+        "score_label": "P1: {user} | CPU: {cpu}",
+        "select_weapon": "SELECT WEAPON",
+        "tie": "CPU CHOSE {cpu}. TIE!",
+        "win": "CPU CHOSE {cpu}. PLAYER WINS!",
+        "lose": "CPU CHOSE {cpu}. CPU WINS!",
+        "game_over_win": "GAME OVER: PLAYER WINS",
+        "game_over_lose": "GAME OVER: CPU WINS",
+        "game_over_draw": "GAME OVER: DRAW"
+      },
+      "tictactoe": {
+        "title": "NEON DUEL",
+        "icon": "⭕",
+        "instructions": "Connect 3 symbols in a row. A game of pure strategy and light.",
+        "turn": "PLAYER {player} TURN",
+        "win": "{player} WINS!",
+        "draw": "DRAW!"
+      }
+    }
+  },
+  "es": {
+    "ui": {
+      "back": "VOLVER",
+      "exit": "SALIR",
+      "hint": "PISTA",
+      "submit": "ENVIAR",
+      "reset": "REINICIAR",
+      "instructions_trigger": "INICIAR MISIÓN"
+    },
+    "games": {
+      "guessword": {
+        "title": "ADIVINA LA PALABRA",
+        "icon": "🧐",
+        "instructions": "¡Encuentra la palabra secreta! El sistema te dirá si las letras coinciden. Escribe 'HINT' si te bloqueas.",
+        "placeholder": "PALABRA_",
+        "footer_hint": "ESCRIBE 'HINT' PARA PISTA | 'EXIT' PARA SALIR",
+        "words": ["ARCADE", "NIVEL", "JUGADOR", "MONEDAS", "MISION", "PUNTOS", "BATALLA", "LEYENDA", "RETRO", "SISTEMA", "PACMAN", "PIXEL", "CODIGO", "MATRIZ", "MAGO", "GALAXIA", "NEON", "CIBER", "VICTORIA"]
+      },
+      "battlegame": {
+        "title": "MISIÓN DE BATALLA",
+        "icon": "⚔️",
+        "instructions": "¡El HP del enemigo está OCULTO! Tienes 5 intentos para hacer daño EXACTO y llegar a cero. ¿Podrás lograrlo?",
+        "tries": "INTENTOS RESTANTES",
+        "victory": "🎉 ¡CAMPEÓN! ENEMIGO DERROTADO 🎉",
+        "overkill": "¡OH NO! DEMASIADO DAÑO! ❌",
+        "gameover": "¡FIN DEL JUEGO! EL ENEMIGO SOBREVIVIÓ... 😔",
+        "sensors_strong": "SENSORES: EL OBJETIVO SIGUE EN PIE.",
+        "sensors_half": "SENSORES: PUNTO MEDIO ALCANZADO.",
+        "sensors_critical": "SENSORES: OBJETIVO CRÍTICO. CUIDADO CON EL DAÑO."
+      },
+      "rps": {
+        "title": "PIEDRA PAPEL TIJERA",
+        "icon": "✂️",
+        "instructions": "Clásico Piedra, Papel o Tijera. El mejor de 5 rondas gana el premio. ¡Elige bien!",
+        "score_label": "P1: {user} | CPU: {cpu}",
+        "select_weapon": "ELIGE TU ARMA",
+        "tie": "CPU ELIGIÓ {cpu}. ¡EMPATE!",
+        "win": "CPU ELIGIÓ {cpu}. ¡GANASTE!",
+        "lose": "CPU ELIGIÓ {cpu}. ¡PERDISTE!",
+        "game_over_win": "FIN: ¡EL JUGADOR GANA!",
+        "game_over_lose": "FIN: LA CPU GANA",
+        "game_over_draw": "FIN: EMPATE"
+      },
+      "tictactoe": {
+        "title": "DUELO DE NEÓN",
+        "icon": "⭕",
+        "instructions": "Conecta 3 símbolos en raya. Un juego de pura estrategia y luces.",
+        "turn": "TURNO DEL JUGADOR {player}",
+        "win": "¡GANÓ {player}!",
+        "draw": "¡EMPATE!"
+      }
+    }
+  }
+}
