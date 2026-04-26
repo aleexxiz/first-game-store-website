@@ -1,3 +1,24 @@
+async function loadLanguages() {
+    if (window.LANG_RESOURCES) return window.LANG_RESOURCES;
+    const response = await fetch('leng.json');
+    window.LANG_RESOURCES = await response.json();
+    return window.LANG_RESOURCES;
+}
+
+function formatText(template, params = {}) {
+    return String(template).replace(/\{(\w+)\}/g, (_, key) => params[key] ?? '');
+}
+
+window.cambiarIdioma = async function (lang) {
+    if (window.hub) await window.hub.setLanguage(lang);
+};
+
+window.setLanguageButtons = function (lang) {
+    document.querySelectorAll('.btn-lang').forEach(btn => {
+        btn.classList.toggle('btn-active', btn.id === `btn-${lang}`);
+    });
+};
+
 class ArcadeHub {
     constructor() {
         this.hubView = document.getElementById('arc-hub-portal');
@@ -9,6 +30,8 @@ class ArcadeHub {
         this.modalCloseBtn = document.getElementById('arc-dialog-close');
         this.currentGame = null;
         this.pendingGameType = null;
+        this.lang = 'en';
+        this.langData = null;
 
         this.init();
     }
@@ -25,22 +48,46 @@ class ArcadeHub {
         this.modalCloseBtn.onclick = () => this.overlay.style.display = 'none';
     }
 
+    async setLanguage(lang) {
+        const resources = await loadLanguages();
+        this.lang = lang;
+        this.langData = resources[lang] || resources.en;
+        this.applyLanguage();
+    }
+
+    applyLanguage() {
+        window.setLanguageButtons(this.lang);
+
+        const ui = this.langData.ui;
+        const games = this.langData.games;
+
+        const backSpan = document.querySelector('#arc-abort-signal .back-msg');
+        if (backSpan) backSpan.innerText = ui.back || ui.exit || backSpan.innerText;
+
+        if (this.modalStartBtn) this.modalStartBtn.innerText = ui.instructions_trigger || this.modalStartBtn.innerText;
+
+        document.querySelectorAll('.game-card').forEach(card => {
+            const type = card.getAttribute('data-game');
+            const gameInfo = games[type];
+            if (!gameInfo) return;
+            const title = card.querySelector('h3');
+            if (title) title.innerText = gameInfo.title;
+        });
+
+        if (this.currentGame && typeof this.currentGame.updateLanguage === 'function') {
+            this.currentGame.updateLanguage();
+        }
+    }
+
     showInstructions(type) {
         const title = document.getElementById('arc-dialog-header');
         const text = document.getElementById('arc-dialog-content');
         const icon = document.getElementById('arc-dialog-glyph');
 
-        const info = {
-            guessword: { title: "GUESS WORD", icon: "🧐", text: "Find the secret word! The system will tell you if your letters match. Type 'HINT' if you get stuck." },
-            battlegame: { title: "BATTLE QUEST", icon: "⚔️", text: "The enemy HP is HIDDEN! You have 5 tries to deal EXACTLY enough damage to bring them to zero. Can you hit the bullseye?" },
-            rps: { title: "ROSHAMBO", icon: "✂️", text: "Classic Rock-Paper-Scissors. Best of 5 rounds wins the prize. Choose wisely!" },
-            tictactoe: { title: "NEON DUEL", icon: "⭕", text: "Connect 3 symbols in a row. A game of pure strategy and light." }
-        };
-
-        const config = info[type];
-        title.innerText = config.title;
-        icon.innerText = config.icon;
-        text.innerText = config.text;
+        const info = this.langData?.games?.[type] || {};
+        title.innerText = info.title || title.innerText;
+        icon.innerText = info.icon || icon.innerText;
+        text.innerText = info.instructions || text.innerText;
 
         this.overlay.style.display = 'flex';
     }
@@ -77,11 +124,13 @@ class ArcadeHub {
 class GuessTheWord {
     constructor(container) {
         this.container = container;
-        this.wordList = ["ARCADE", "LEVEL", "GAMER", "COINS", "QUEST", "SCORE", "BATTLE", "LEGEND", "RETRO", "SYSTEM", "PACMAN", "PIXEL", "CODING", "MATRIX", "WIZARD", "GALAXY", "NEON", "CYBER", "VICTORY"];
+        const langGame = window.hub?.langData?.games?.guessword || {};
+        this.wordList = langGame.words || ["ARCADE", "LEVEL", "GAMER", "COINS", "QUEST", "SCORE", "BATTLE", "LEGEND", "RETRO", "SYSTEM", "PACMAN", "PIXEL", "CODING", "MATRIX", "WIZARD", "GALAXY", "NEON", "CYBER", "VICTORY"];
         this.secretWord = this.wordList[Math.floor(Math.random() * this.wordList.length)];
         this.render();
     }
     checkGuess() {
+        const langGame = window.hub?.langData?.games?.guessword || {};
         const input = document.getElementById('word-input');
         const user = input.value.trim().toUpperCase();
         const feedback = document.getElementById('word-feedback');
@@ -93,7 +142,7 @@ class GuessTheWord {
         }
 
         if (user === "HINT") {
-            feedback.innerHTML = `Secret Word is ${this.secretWord.length} letters`;
+            feedback.innerHTML = `${langGame.title || 'Secret Word'} is ${this.secretWord.length} letters`;
             input.value = "";
             return;
         }
@@ -122,13 +171,15 @@ class GuessTheWord {
         input.value = "";
     }
     render() {
+        const langGame = window.hub?.langData?.games?.guessword || {};
+        const ui = window.hub?.langData?.ui || {};
         this.container.innerHTML = `
-            <h2 style="margin-bottom:20px; color:#0ff">GUESS WORD</h2>
-            <p style="font-size:12px; margin-bottom:10px; opacity:0.8">Find the secret word! 🔑</p>
+            <h2 style="margin-bottom:20px; color:#0ff">${langGame.title || 'GUESS WORD'}</h2>
+            <p style="font-size:12px; margin-bottom:10px; opacity:0.8">${langGame.instructions || 'Find the secret word! 🔑'}</p>
             <div id="word-feedback" class="output-msg" style="min-height:50px">AWAITING INPUT...</div>
-            <input type="text" id="word-input" class="word-input" style="font-family:'Press Start 2P'; background:transparent; border:2px solid #0ff; outline:none; color:#0ff; padding:15px; margin:20px 0; width: 80%; max-width: 300px" placeholder="KEYWORD_" autocomplete="off">
-            <button id="btn-guess" class="btn-play">SUBMIT</button>
-            <p style="font-size:10px; margin-top:20px; opacity:0.6">TYPE 'HINT' FOR CLUE | TYPE 'EXIT' TO QUIT</p>
+            <input type="text" id="word-input" class="word-input" style="font-family:'Press Start 2P'; background:transparent; border:2px solid #0ff; outline:none; color:#0ff; padding:15px; margin:20px 0; width: 80%; max-width: 300px" placeholder="${langGame.placeholder || 'KEYWORD_'}" autocomplete="off">
+            <button id="btn-guess" class="btn-play">${ui.submit || 'SUBMIT'}</button>
+            <p style="font-size:10px; margin-top:20px; opacity:0.6">${langGame.footer_hint || "TYPE 'HINT' FOR CLUE | TYPE 'EXIT' TO QUIT"}</p>
         `;
         document.getElementById('btn-guess').onclick = () => this.checkGuess();
         document.getElementById('word-input').onkeypress = (e) => { if (e.key === 'Enter') this.checkGuess(); };
@@ -149,23 +200,23 @@ class BattleGame {
         this.updateUI();
     }
     updateUI() {
+        const langBattle = window.hub?.langData?.games?.battlegame || {};
         const log = document.getElementById('battle-log');
         const tries = document.getElementById('battle-tries');
 
-        tries.innerText = `REMAINING TRIES: ${this.tryCount}`;
+        tries.innerText = `${langBattle.tries || 'REMAINING TRIES'}: ${this.tryCount}`;
 
         if (this.afterHp === 0) {
-            log.innerHTML = `<span style="color:#10b981">🎉 CHAMPION! ENEMY DEFEATED 🎉</span>`;
+            log.innerHTML = `<span style="color:#10b981">${langBattle.victory || '🎉 CHAMPION! ENEMY DEFEATED 🎉'}</span>`;
             document.querySelectorAll('.battle-btn').forEach(b => b.disabled = true);
         } else if (this.afterHp < 0) {
-            log.innerHTML = `<span style="color:#f43f5e">OH NO! OVERKILL! ❌</span>`;
+            log.innerHTML = `<span style="color:#f43f5e">${langBattle.overkill || 'OH NO! OVERKILL! ❌'}</span>`;
             document.querySelectorAll('.battle-btn').forEach(b => b.disabled = true);
         } else if (this.tryCount === 0) {
-            log.innerHTML = `<span style="color:#f43f5e">GAME OVER! ENEMY SURVIVED WITH SOME HP... 😔</span>`;
+            log.innerHTML = `<span style="color:#f43f5e">${langBattle.gameover || 'GAME OVER! ENEMY SURVIVED WITH SOME HP... 😔'}</span>`;
             document.querySelectorAll('.battle-btn').forEach(b => b.disabled = true);
         } else {
-            // Hint messages without revealing HP
-            const currentMessage = this.afterHp > 70 ? "SENSORS: TARGET IS STILL STANDING STRONG." : (this.afterHp === 70 ? "SENSORS: HALFWAY POINT REACHED." : "SENSORS: TARGET CRITICAL. DO NOT OVERKILL.");
+            const currentMessage = this.afterHp > 70 ? langBattle.sensors_strong || 'SENSORS: TARGET IS STILL STANDING STRONG.' : (this.afterHp === 70 ? langBattle.sensors_half || 'SENSORS: HALFWAY POINT REACHED.' : langBattle.sensors_critical || 'SENSORS: TARGET CRITICAL. DO NOT OVERKILL.');
             this.typeMsg(log, currentMessage);
         }
     }
@@ -181,11 +232,12 @@ class BattleGame {
     }
 
     render() {
+        const langBattle = window.hub?.langData?.games?.battlegame || {};
         this.container.innerHTML = `
-            <h2 style="color:#ff00ff">BATTLE QUEST</h2>
-            <div id="battle-tries" style="font-family:'Press Start 2P'; font-size:10px; margin:20px 0">REMAINING TRIES: 5</div>
+            <h2 style="color:#ff00ff">${langBattle.title || 'BATTLE QUEST'}</h2>
+            <div id="battle-tries" style="font-family:'Press Start 2P'; font-size:10px; margin:20px 0">${langBattle.tries || 'REMAINING TRIES'}: 5</div>
             <div class="hp-container" style="margin:20px 0"><div id="battle-hp-bar" class="hp-bar"></div></div>
-            <div id="battle-log" class="output-msg" style="min-height:60px">TARGET HP IS HIDDEN. NEUTRALIZE THE TARGET PRECISELY.</div>
+            <div id="battle-log" class="output-msg" style="min-height:60px">${langBattle.instructions || 'TARGET HP IS HIDDEN. NEUTRALIZE THE TARGET PRECISELY.'}</div>
             <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:20px">
                 ${[10, 20, 30, 40, 50].map(v => `<button class="btn-play battle-btn" onclick="window.game.attack(${v})">${v}</button>`).join('')}
             </div>
@@ -202,27 +254,29 @@ class RPS {
     }
     play(choice) {
         if (this.scores.round > 5) return;
+        const langRPS = window.hub?.langData?.games?.rps || {};
         const cpu = ["Rock", "Paper", "Scissors"][Math.floor(Math.random() * 3)];
         const log = document.getElementById('rps-log');
-        if (choice === cpu) log.innerText = `CPU CHOSE ${cpu}. TIE!`;
+        if (choice === cpu) log.innerText = formatText(langRPS.tie || `CPU CHOSE {cpu}. TIE!`, { cpu });
         else if ((choice === "Rock" && cpu === "Scissors") || (choice === "Paper" && cpu === "Rock") || (choice === "Scissors" && cpu === "Paper")) {
-            log.innerText = `CPU CHOSE ${cpu}. PLAYER WINS!`;
+            log.innerText = formatText(langRPS.win || `CPU CHOSE {cpu}. PLAYER WINS!`, { cpu });
             this.scores.user++;
         } else {
-            log.innerText = `CPU CHOSE ${cpu}. CPU WINS!`;
+            log.innerText = formatText(langRPS.lose || `CPU CHOSE {cpu}. CPU WINS!`, { cpu });
             this.scores.cpu++;
         }
         this.scores.round++;
-        document.getElementById('rps-score').innerText = `P1: ${this.scores.user} | CPU: ${this.scores.cpu}`;
+        document.getElementById('rps-score').innerText = formatText(langRPS.score_label || `P1: {user} | CPU: {cpu}`, { user: this.scores.user, cpu: this.scores.cpu });
         if (this.scores.round > 5) {
-            log.innerText = this.scores.user > this.scores.cpu ? "GAME OVER: PLAYER WINS" : (this.scores.user < this.scores.cpu ? "GAME OVER: CPU WINS" : "GAME OVER: DRAW");
+            log.innerText = this.scores.user > this.scores.cpu ? (langRPS.game_over_win || "GAME OVER: PLAYER WINS") : (this.scores.user < this.scores.cpu ? (langRPS.game_over_lose || "GAME OVER: CPU WINS") : (langRPS.game_over_draw || "GAME OVER: DRAW"));
         }
     }
     render() {
+        const langRPS = window.hub?.langData?.games?.rps || {};
         this.container.innerHTML = `
-            <h2 style="color:#0ff">ROSHAMBO</h2>
-            <div id="rps-score" style="margin:20px 0; font-family:'Press Start 2P'; font-size:12px">P1: 0 | CPU: 0</div>
-            <div id="rps-log" class="output-msg">SELECT WEAPON</div>
+            <h2 style="color:#0ff">${langRPS.title || 'ROSHAMBO'}</h2>
+            <div id="rps-score" style="margin:20px 0; font-family:'Press Start 2P'; font-size:12px">${formatText(langRPS.score_label || 'P1: {user} | CPU: {cpu}', { user: 0, cpu: 0 })}</div>
+            <div id="rps-log" class="output-msg">${langRPS.select_weapon || 'SELECT WEAPON'}</div>
             <div style="display:flex; gap:20px; font-size: 3rem">
                 <span class="rps-hand" style="cursor:pointer" onclick="window.game.play('Rock')">🪨</span>
                 <span class="rps-hand" style="cursor:pointer" onclick="window.game.play('Paper')">📄</span>
@@ -245,23 +299,33 @@ class TicTacToe {
         if (this.board[i] || this.isOver) return;
         this.board[i] = this.p;
         this.render();
-        if (this.check()) { document.getElementById('ttt-log').innerText = `${this.p} WINS!`; this.isOver = 1; return; }
-        if (this.board.every(b => b)) { document.getElementById('ttt-log').innerText = "DRAW!"; return; }
+        const langTTT = window.hub?.langData?.games?.tictactoe || {};
+        if (this.check()) {
+            document.getElementById('ttt-log').innerText = formatText(langTTT.win || '{player} WINS!', { player: this.p });
+            this.isOver = 1;
+            return;
+        }
+        if (this.board.every(b => b)) {
+            document.getElementById('ttt-log').innerText = langTTT.draw || 'DRAW!';
+            return;
+        }
         this.p = this.p === "X" ? "O" : "X";
-        document.getElementById('ttt-log').innerText = `PLAYER ${this.p} TURN`;
+        document.getElementById('ttt-log').innerText = formatText(langTTT.turn || 'PLAYER {player} TURN', { player: this.p });
     }
     check() {
         const w = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
         return w.some(c => c.every(i => this.board[i] === this.p));
     }
     render() {
+        const langTTT = window.hub?.langData?.games?.tictactoe || {};
+        const ui = window.hub?.langData?.ui || {};
         this.container.innerHTML = `
-            <h2 style="color:#ff00ff">NEON DUEL</h2>
-            <div id="ttt-log" class="output-msg">PLAYER X TURN</div>
+            <h2 style="color:#ff00ff">${langTTT.title || 'NEON DUEL'}</h2>
+            <div id="ttt-log" class="output-msg">${formatText(langTTT.turn || 'PLAYER {player} TURN', { player: 'X' })}</div>
             <div class="ttt-grid">
                 ${this.board.map((v, i) => `<div class="ttt-cell ${v ? v.toLowerCase() : ''}" onclick="window.game.move(${i})">${v ? v : ''}</div>`).join('')}
             </div>
-            <button class="btn-play" style="margin-top:20px" onclick="window.game.reset()">RESET</button>
+            <button class="btn-play" style="margin-top:20px" onclick="window.game.reset()">${ui.reset || 'RESET'}</button>
         `;
         window.game = this;
     }
@@ -269,3 +333,4 @@ class TicTacToe {
 }
 
 window.hub = new ArcadeHub();
+window.hub.setLanguage('en');
