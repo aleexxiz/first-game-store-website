@@ -1,6 +1,7 @@
 # 🎮 Game Store - Live Demo
 
-This repository is the **Live Demo and Deployment** for my game project -> https://yarusd.github.io/first-game-store-website/
+This repository is the **Live Demo and Deployment** for my game project :
+https://yarusd.github.io/first-game-store-website/
 It was created to provide a visual representation of the games and a clean UI for demonstration purposes.
 
 ## 🚀 Experience the Logic
