@@ -123,69 +123,133 @@ class ArcadeHub {
 
 class GuessTheWord {
     constructor(container) {
-        this.container = container;
-        const langGame = window.hub?.langData?.games?.guessword || {};
-        this.wordList = langGame.words || ["ARCADE", "LEVEL", "GAMER", "COINS", "QUEST", "SCORE", "BATTLE", "LEGEND", "RETRO", "SYSTEM", "PACMAN", "PIXEL", "CODING", "MATRIX", "WIZARD", "GALAXY", "NEON", "CYBER", "VICTORY"];
-        this.secretWord = this.wordList[Math.floor(Math.random() * this.wordList.length)];
-        this.render();
+        // Guardamos el contenedor pero usamos el ID específico que pide tu función
+        this.container = container; 
+        this.currentLang = window.hub?.langData || { games: { guessword: { words: ["ARCADE"] } } };
+        
+        // Iniciamos el juego por primera vez
+        this.initGuessWord(this.currentLang);
     }
+
     updateLanguage() {
-        this.render();
+        // Si cambia el idioma en el Hub, actualizamos la referencia y relanzamos el juego
+        this.currentLang = window.hub?.langData || this.currentLang;
+        this.initGuessWord(this.currentLang);
     }
-    checkGuess() {
-        const langGame = window.hub?.langData?.games?.guessword || {};
-        const input = document.getElementById('word-input');
-        const user = input.value.trim().toUpperCase();
-        const feedback = document.getElementById('word-feedback');
-        if (!user) return;
 
-        if (user === "EXIT") {
-            window.hub.showHub();
-            return;
+    initGuessWord(lang) {
+        const t = lang.games?.guessword || {};    // textos del idioma
+        const words = t.words || ["ARCADE", "LEVEL", "GAMER"];
+        const secret = words[Math.floor(Math.random() * words.length)].toUpperCase();
+        
+        let guessedLetters = new Set();   // letras ya usadas
+        let correctLetters = new Set();   // letras acertadas
+        
+        // Contenedor del juego (usa el ID que venía en tu función)
+        const zone = document.getElementById('arc-render-zone') || this.container; 
+        zone.innerHTML = '';                                      // limpiar zona
+        
+        // ----- TÍTULO -----
+        const title = document.createElement('h2');
+        title.style.color = '#0ff'; // Mantenemos el estilo neón retro del original si quieres
+        title.textContent = t.title || 'GUESS WORD';
+        zone.appendChild(title);
+        
+        // ----- LONGITUD (ej: "LETRAS: 6") -----
+        const lengthLabel = document.createElement('p');
+        lengthLabel.className = 'gw-length-label';
+        lengthLabel.textContent = `${t.letters_label || 'LETTERS'}: ${secret.length}`;
+        zone.appendChild(lengthLabel);
+        
+        // ----- CAJAS DE LETRAS -----
+        const wordDisplay = document.createElement('div');
+        wordDisplay.className = 'gw-word-display';
+        const boxes = [];
+        for (let i = 0; i < secret.length; i++) {
+            const box = document.createElement('div');
+            box.className = 'gw-letter-box';
+            box.textContent = '';
+            wordDisplay.appendChild(box);
+            boxes.push(box);
         }
-
-        if (user === "HINT") {
-            feedback.innerHTML = `${langGame.title || 'Secret Word'} is ${this.secretWord.length} letters`;
-            input.value = "";
-            return;
-        }
-
-        if (user === this.secretWord) {
-            feedback.innerHTML = "🎉 You WON! Great job! 🎉";
-            input.disabled = true;
-            document.getElementById('btn-guess').style.display = 'none';
-        } else {
-            let total_char = 0;
-            const userChars = new Set(user);
-            userChars.forEach(char => {
-                if (this.secretWord.includes(char)) total_char++;
-            });
-
-            if (total_char === 0) {
-                feedback.innerText = "No matching characters";
-            } else if (total_char === 1) {
-                feedback.innerText = "CLOSE! 1 character is correct";
-            } else if (total_char === 2) {
-                feedback.innerText = "CLOSER! 2 characters correct";
-            } else {
-                feedback.innerText = "VERY CLOSE! 3+ characters correct";
+        zone.appendChild(wordDisplay);
+        
+        // ----- MENSAJE DE ESTADO -----
+        const statusMsg = document.createElement('p');
+        statusMsg.style.cssText = 'text-align:center;min-height:24px;font-size:0.85rem;margin:8px 0;color:#0ff;';
+        statusMsg.textContent = 'AWAITING INPUT...';
+        zone.appendChild(statusMsg);
+        
+        // ----- FUNCIÓN: actualizar cajas -----
+        function updateBoxes() {
+            for (let i = 0; i < secret.length; i++) {
+                if (correctLetters.has(secret[i])) {
+                    boxes[i].textContent = secret[i];
+                    boxes[i].classList.add('correct');
+                }
             }
         }
-        input.value = "";
-    }
-    render() {
-        const langGame = window.hub?.langData?.games?.guessword || {};
-        const ui = window.hub?.langData?.ui || {};
-        this.container.innerHTML = `
-            <h2 style="margin-bottom:20px; color:#0ff">${langGame.title || 'GUESS WORD'}</h2>
-            <p style="font-size:12px; margin-bottom:10px; opacity:0.8">${langGame.instructions || 'Find the secret word! 🔑'}</p>
-            <div id="word-feedback" class="output-msg" style="min-height:50px">AWAITING INPUT...</div>
-            <input type="text" id="word-input" class="word-input" style="font-family:'Press Start 2P'; background:transparent; border:2px solid #0ff; outline:none; color:#0ff; padding:15px; margin:20px 0; width: 80%; max-width: 300px" placeholder="${langGame.placeholder || 'KEYWORD_'}" autocomplete="off">
-            <button id="btn-guess" class="btn-play">${ui.submit || 'SUBMIT'}</button>
-            <p style="font-size:10px; margin-top:20px; opacity:0.6">${langGame.footer_hint || "TYPE 'HINT' FOR CLUE | TYPE 'EXIT' TO QUIT"}</p>
-        `;
-        document.getElementById('btn-guess').onclick = () => this.checkGuess();
-        document.getElementById('word-input').onkeypress = (e) => { if (e.key === 'Enter') this.checkGuess(); };
+        
+        // ----- FUNCIÓN: verificar victoria -----
+        function checkWin() {
+            return [...secret].every(ch => correctLetters.has(ch));
+        }
+        
+        // ----- FUNCIÓN: manejar clic en tecla -----
+        function handleKey(letter, keyEl) {
+            if (guessedLetters.has(letter)) return;
+            guessedLetters.add(letter);
+            keyEl.disabled = true;
+            
+            if (secret.includes(letter)) {
+                correctLetters.add(letter);
+                keyEl.classList.add('hit');
+                updateBoxes();
+                if (checkWin()) {
+                    statusMsg.textContent = '🎉 ' + (lang.ui?.victory || 'YOU WIN!');
+                    disableAllKeys();
+                } else {
+                    statusMsg.textContent = '✅ +' + letter;
+                }
+            } else {
+                keyEl.classList.add('miss');
+                statusMsg.textContent = '❌ ' + letter + ' — NOT IN WORD';
+            }
+        }
+        
+        // ----- FUNCIÓN: deshabilitar todo -----
+        function disableAllKeys() {
+            zone.querySelectorAll('.gw-key').forEach(k => { k.disabled = true; });
+        }
+        
+        // ----- TECLADO VISUAL -----
+        const rows = [
+            ['Q','W','E','R','T','Y','U','I','O','P'],
+            ['A','S','D','F','G','H','J','K','L'],
+            ['Z','X','C','V','B','N','M']
+        ];
+        const keyboard = document.createElement('div');
+        keyboard.className = 'gw-keyboard';
+        
+        rows.forEach(row => {
+            const rowEl = document.createElement('div');
+            rowEl.className = 'gw-keyboard-row';
+            row.forEach(letter => {
+                const key = document.createElement('button');
+                key.className = 'gw-key';
+                key.textContent = letter;
+                key.addEventListener('click', () => handleKey(letter, key));
+                rowEl.appendChild(key);
+            });
+            keyboard.appendChild(rowEl);
+        });
+        zone.appendChild(keyboard);
+        
+        // ----- PIE DE PÁGINA -----
+        const footer = document.createElement('p');
+        footer.style.cssText = 'text-align:center;font-size:0.6rem;opacity:0.5;margin-top:12px;';
+        footer.textContent = t.footer_hint || '';
+        zone.appendChild(footer);
     }
 }
 

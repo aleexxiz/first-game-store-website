@@ -6,7 +6,9 @@
       "hint": "HINT",
       "submit": "SUBMIT",
       "reset": "RESET",
-      "instructions_trigger": "START MISSION"
+      "instructions_trigger": "START MISSION",
+      "keyboard_title": "KEYBOARD",
+      "letters_label": "LETTERS"
     },
     "games": {
       "guessword": {
@@ -59,7 +61,9 @@
       "hint": "PISTA",
       "submit": "ENVIAR",
       "reset": "REINICIAR",
-      "instructions_trigger": "INICIAR MISIÓN"
+      "instructions_trigger": "INICIAR MISIÓN",
+      "keyboard_title": "TECLADO",
+      "letters_label": "LETRAS"
     },
     "games": {
       "guessword": {
