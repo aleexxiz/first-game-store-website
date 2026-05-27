@@ -129,6 +129,9 @@ class GuessTheWord {
         this.secretWord = this.wordList[Math.floor(Math.random() * this.wordList.length)];
         this.render();
     }
+    updateLanguage() {
+        this.render();
+    }
     checkGuess() {
         const langGame = window.hub?.langData?.games?.guessword || {};
         const input = document.getElementById('word-input');
@@ -193,6 +196,9 @@ class BattleGame {
         this.tryCount = 5;
         this.render();
     }
+    updateLanguage() {
+        this.render();
+    }
     attack(val) {
         if (this.tryCount <= 0 || this.afterHp <= 0) return;
         this.afterHp -= val;
@@ -252,6 +258,9 @@ class RPS {
         this.scores = { user: 0, cpu: 0, round: 1 };
         this.render();
     }
+    updateLanguage() {
+        this.render();
+    }
     play(choice) {
         if (this.scores.round > 5) return;
         const langRPS = window.hub?.langData?.games?.rps || {};
@@ -293,6 +302,9 @@ class TicTacToe {
         this.board = Array(9).fill(null);
         this.p = "X";
         this.isOver = false;
+        this.render();
+    }
+    updateLanguage() {
         this.render();
     }
     move(i) {
