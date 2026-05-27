@@ -9,7 +9,12 @@ function formatText(template, params = {}) {
     return String(template).replace(/\{(\w+)\}/g, (_, key) => params[key] ?? '');
 }
 
-window.cambiarIdioma = async function (lang) {
+// Global flag to prevent language exploits mid-game
+window.gameStarted = false;
+
+// FIX 1: Si el juego está en curso, simplemente no hacer nada (sin mensaje invasivo)
+window.changeLanguage = async function (lang) {
+    if (window.gameStarted) return;
     if (window.hub) await window.hub.setLanguage(lang);
 };
 
@@ -101,6 +106,8 @@ class ArcadeHub {
             setTimeout(() => this.gameView.classList.add('active'), 50);
             this.renderArea.innerHTML = '';
 
+            window.gameStarted = false;
+
             switch (this.pendingGameType) {
                 case 'guessword': this.currentGame = new GuessTheWord(this.renderArea); break;
                 case 'battlegame': this.currentGame = new BattleGame(this.renderArea); break;
@@ -117,139 +124,288 @@ class ArcadeHub {
             this.hubView.style.display = 'block';
             setTimeout(() => this.hubView.classList.add('active'), 50);
         }, 300);
+        
+        window.gameStarted = false;
+        if (this.currentGame && typeof this.currentGame.destroy === 'function') {
+            this.currentGame.destroy();
+        }
         this.currentGame = null;
     }
 }
 
 class GuessTheWord {
     constructor(container) {
-        // Guardamos el contenedor pero usamos el ID específico que pide tu función
         this.container = container; 
-        this.currentLang = window.hub?.langData || { games: { guessword: { words: ["ARCADE"] } } };
-        
-        // Iniciamos el juego por primera vez
+        this.currentLang = window.hub?.langData || { games: { guessword: { title: "WORDLE" } } };
+        this.keyElements = {}; 
+        this.keydownListener = null;
+        // FIX 2: Estado de fin de partida a nivel de instancia
+        this.gameOver = false;
+
         this.initGuessWord(this.currentLang);
     }
 
     updateLanguage() {
-        // Si cambia el idioma en el Hub, actualizamos la referencia y relanzamos el juego
+        // FIX 2: Si la partida terminó, no reiniciar el juego al cambiar idioma
+        if (this.gameOver) return;
         this.currentLang = window.hub?.langData || this.currentLang;
         this.initGuessWord(this.currentLang);
     }
 
-    initGuessWord(lang) {
-        const t = lang.games?.guessword || {};    // textos del idioma
-        const words = t.words || ["ARCADE", "LEVEL", "GAMER"];
-        const secret = words[Math.floor(Math.random() * words.length)].toUpperCase();
-        
-        let guessedLetters = new Set();   // letras ya usadas
-        let correctLetters = new Set();   // letras acertadas
-        
-        // Contenedor del juego (usa el ID que venía en tu función)
-        const zone = document.getElementById('arc-render-zone') || this.container; 
-        zone.innerHTML = '';                                      // limpiar zona
-        
-        // ----- TÍTULO -----
+    destroy() {
+        if (this.keydownListener) {
+            window.removeEventListener('keydown', this.keydownListener);
+        }
+    }
+
+    async initGuessWord(lang) {
+        this.destroy();
+        // FIX 2: Resetear el estado de fin de partida al iniciar una nueva
+        this.gameOver = false;
+
+        const t = lang.games?.guessword || {};    
+        const activeLangCode = window.hub?.lang || 'en';
+        const dictionaryFile = activeLangCode === 'es' ? 'palabras.txt' : 'words.txt';
+        let secret = "TIZAS"; 
+
+        try {
+            const response = await fetch(dictionaryFile);
+            if (response.ok) {
+                const textData = await response.text();
+                const parsedWords = textData
+                    .split('\n')
+                    .map(w => w.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")) 
+                    .filter(w => w.length === 5);
+
+                if (parsedWords.length > 0) {
+                    secret = parsedWords[Math.floor(Math.random() * parsedWords.length)];
+                }
+            }
+        } catch (error) {
+            console.error("Could not fetch explicit word file, fallback initialized.", error);
+        }
+
+        const maxAttempts = 6;
+        let currentAttempt = 0;
+        let currentLetterIndex = 0;
+        let guesses = Array(maxAttempts).fill("").map(() => Array(5).fill(""));
+        let gameOver = false;
+
+        const zone = document.getElementById('arc-render-zone') || this.container;
+        zone.innerHTML = '';                                      
+
+        // ----- TITLE -----
         const title = document.createElement('h2');
-        title.style.color = '#0ff'; // Mantenemos el estilo neón retro del original si quieres
-        title.textContent = t.title || 'GUESS WORD';
+        title.style.color = '#0ff'; 
+        title.textContent = t.title || (activeLangCode === 'es' ? 'LA PALABRA DEL DÍA' : 'WORD OF THE DAY');
         zone.appendChild(title);
+
+        // ----- GAME MATRIX GRID -----
+        const gridContainer = document.createElement('div');
+        gridContainer.className = 'gw-grid-container';
+        gridContainer.style.cssText = 'display:grid; grid-template-rows:repeat(6, 1fr); gap:5px; margin:20px auto; width:max-content;';
         
-        // ----- LONGITUD (ej: "LETRAS: 6") -----
-        const lengthLabel = document.createElement('p');
-        lengthLabel.className = 'gw-length-label';
-        lengthLabel.textContent = `${t.letters_label || 'LETTERS'}: ${secret.length}`;
-        zone.appendChild(lengthLabel);
-        
-        // ----- CAJAS DE LETRAS -----
-        const wordDisplay = document.createElement('div');
-        wordDisplay.className = 'gw-word-display';
-        const boxes = [];
-        for (let i = 0; i < secret.length; i++) {
-            const box = document.createElement('div');
-            box.className = 'gw-letter-box';
-            box.textContent = '';
-            wordDisplay.appendChild(box);
-            boxes.push(box);
-        }
-        zone.appendChild(wordDisplay);
-        
-        // ----- MENSAJE DE ESTADO -----
-        const statusMsg = document.createElement('p');
-        statusMsg.style.cssText = 'text-align:center;min-height:24px;font-size:0.85rem;margin:8px 0;color:#0ff;';
-        statusMsg.textContent = 'AWAITING INPUT...';
-        zone.appendChild(statusMsg);
-        
-        // ----- FUNCIÓN: actualizar cajas -----
-        function updateBoxes() {
-            for (let i = 0; i < secret.length; i++) {
-                if (correctLetters.has(secret[i])) {
-                    boxes[i].textContent = secret[i];
-                    boxes[i].classList.add('correct');
-                }
+        const cellMatrix = [];
+        for (let r = 0; r < maxAttempts; r++) {
+            const rowEl = document.createElement('div');
+            rowEl.style.cssText = 'display:grid; grid-template-columns:repeat(5, 1fr); gap:5px;';
+            const rowCells = [];
+            for (let c = 0; c < 5; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'gw-letter-box';
+                cell.style.cssText = 'width:50px; height:50px; border:2px solid #333; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:bold; color:#fff; text-transform:uppercase; transition: background-color 0.3s;';
+                rowEl.appendChild(cell);
+                rowCells.push(cell);
             }
+            gridContainer.appendChild(rowEl);
+            cellMatrix.push(rowCells);
         }
-        
-        // ----- FUNCIÓN: verificar victoria -----
-        function checkWin() {
-            return [...secret].every(ch => correctLetters.has(ch));
-        }
-        
-        // ----- FUNCIÓN: manejar clic en tecla -----
-        function handleKey(letter, keyEl) {
-            if (guessedLetters.has(letter)) return;
-            guessedLetters.add(letter);
-            keyEl.disabled = true;
-            
-            if (secret.includes(letter)) {
-                correctLetters.add(letter);
-                keyEl.classList.add('hit');
-                updateBoxes();
-                if (checkWin()) {
-                    statusMsg.textContent = '🎉 ' + (lang.ui?.victory || 'YOU WIN!');
-                    disableAllKeys();
-                } else {
-                    statusMsg.textContent = '✅ +' + letter;
-                }
-            } else {
-                keyEl.classList.add('miss');
-                statusMsg.textContent = '❌ ' + letter + ' — NOT IN WORD';
-            }
-        }
-        
-        // ----- FUNCIÓN: deshabilitar todo -----
-        function disableAllKeys() {
-            zone.querySelectorAll('.gw-key').forEach(k => { k.disabled = true; });
-        }
-        
-        // ----- TECLADO VISUAL -----
-        const rows = [
+        zone.appendChild(gridContainer);
+        cellMatrix[0][0].style.borderColor = '#0071e3';
+
+        // ----- MESSAGE CONTAINER -----
+        const messageContainer = document.createElement('div');
+        messageContainer.className = 'gw-message-container';
+        messageContainer.style.cssText = 'min-height: 28px; font-weight: bold; font-family: "Press Start 2P", monospace; font-size: 0.75rem; margin: 15px 0; text-align: center; transition: all 0.3s; line-height: 1.4;';
+        zone.appendChild(messageContainer);
+
+        // ----- ACTIONS AREA (Play Again Button) -----
+        const actionArea = document.createElement('div');
+        actionArea.style.cssText = 'display:flex; justify-content:center; min-height:40px; margin-bottom:10px;';
+        zone.appendChild(actionArea);
+
+        // ----- VISUAL MONITOR KEYBOARD -----
+        const baseRows = [
             ['Q','W','E','R','T','Y','U','I','O','P'],
-            ['A','S','D','F','G','H','J','K','L'],
-            ['Z','X','C','V','B','N','M']
+            ['A','S','D','F','G','H','J','K','L']
         ];
+        
+        if (activeLangCode === 'es') {
+            baseRows[1].push('Ñ');
+        }
+        
+        baseRows.push(['Z','X','C','V','B','N','M']);
+
         const keyboard = document.createElement('div');
         keyboard.className = 'gw-keyboard';
+        keyboard.style.cssText = 'display:flex; flex-direction:column; gap:8px; margin-top:10px; align-items:center; pointer-events: none;';
         
-        rows.forEach(row => {
+        this.keyElements = {};
+        baseRows.forEach(row => {
             const rowEl = document.createElement('div');
             rowEl.className = 'gw-keyboard-row';
+            rowEl.style.cssText = 'display:flex; gap:6px;';
             row.forEach(letter => {
                 const key = document.createElement('button');
                 key.className = 'gw-key';
                 key.textContent = letter;
-                key.addEventListener('click', () => handleKey(letter, key));
+                key.style.cssText = 'background-color:#2d3748; color:#fff; border:none; padding:10px 12px; font-weight:bold; border-radius:4px; min-width:32px; font-size:0.9rem;';
                 rowEl.appendChild(key);
+                this.keyElements[letter] = key;
             });
             keyboard.appendChild(rowEl);
         });
         zone.appendChild(keyboard);
-        
-        // ----- PIE DE PÁGINA -----
-        const footer = document.createElement('p');
-        footer.style.cssText = 'text-align:center;font-size:0.6rem;opacity:0.5;margin-top:12px;';
-        footer.textContent = t.footer_hint || '';
-        zone.appendChild(footer);
+
+        const updateGridDisplay = () => {
+            for (let r = 0; r < maxAttempts; r++) {
+                for (let c = 0; c < 5; c++) {
+                    cellMatrix[r][c].textContent = guesses[r][c];
+                    if (!gameOver && r === currentAttempt && c === currentLetterIndex) {
+                        cellMatrix[r][c].style.borderColor = '#0071e3';
+                    } else if (r === currentAttempt && !gameOver) {
+                        cellMatrix[r][c].style.borderColor = '#555';
+                    }
+                }
+            }
+        };
+
+        const showResetButton = () => {
+            const resetBtn = document.createElement('button');
+            resetBtn.className = 'btn-play';
+            resetBtn.textContent = activeLangCode === 'es' ? 'JUGAR DE NUEVO' : 'PLAY AGAIN';
+            resetBtn.style.padding = '10px 20px';
+            resetBtn.onclick = () => {
+                // FIX 2: Resetear el flag de instancia antes de reiniciar
+                this.gameOver = false;
+                this.initGuessWord(this.currentLang);
+            };
+            actionArea.appendChild(resetBtn);
+        };
+
+        // ----- ATTEMPT SUBMISSION -----
+        const submitGuess = () => {
+            if (currentLetterIndex < 5) return; 
+
+            const currentWord = guesses[currentAttempt].join("");
+            let tempSecret = secret.split("");
+            let rowStatuses = Array(5).fill('absent'); 
+
+            for (let i = 0; i < 5; i++) {
+                if (currentWord[i] === secret[i]) {
+                    rowStatuses[i] = 'correct';
+                    tempSecret[i] = null; 
+                }
+            }
+
+            for (let i = 0; i < 5; i++) {
+                if (rowStatuses[i] === 'correct') continue;
+                
+                const indexInSecret = tempSecret.indexOf(currentWord[i]);
+                if (indexInSecret !== -1) {
+                    rowStatuses[i] = 'present';
+                    tempSecret[indexInSecret] = null;
+                }
+            }
+
+            for (let i = 0; i < 5; i++) {
+                const letter = currentWord[i];
+                const cell = cellMatrix[currentAttempt][i];
+                const keyBtn = this.keyElements[letter];
+
+                if (rowStatuses[i] === 'correct') {
+                    cell.style.backgroundColor = '#2f855a'; 
+                    cell.style.borderColor = '#2f855a';
+                    if (keyBtn) keyBtn.style.backgroundColor = '#2f855a';
+                } else if (rowStatuses[i] === 'present') {
+                    cell.style.backgroundColor = '#dd6b20'; 
+                    cell.style.borderColor = '#dd6b20';
+                    if (keyBtn && keyBtn.style.backgroundColor !== 'rgb(47, 133, 90)') {
+                        keyBtn.style.backgroundColor = '#dd6b20';
+                    }
+                } else {
+                    cell.style.backgroundColor = '#4a5568'; 
+                    cell.style.borderColor = '#4a5568';
+                    if (keyBtn && !keyBtn.style.backgroundColor) {
+                        keyBtn.style.backgroundColor = '#1a202c'; 
+                    }
+                }
+            }
+
+            if (currentWord === secret) {
+                // FIX 2: Marcar fin de partida en la instancia Y en la variable local
+                gameOver = true;
+                this.gameOver = true;
+                messageContainer.style.color = '#48bb78'; // Green
+                messageContainer.textContent = activeLangCode === 'es' 
+                    ? `🎉 ¡GANASTE! LA PALABRA ERA: ${secret}` 
+                    : `🎉 YOU WIN! THE WORD WAS: ${secret}`;
+                this.destroy();
+                window.gameStarted = false;
+                showResetButton();
+                return;
+            }
+
+            currentAttempt++;
+            currentLetterIndex = 0;
+
+            if (currentAttempt >= maxAttempts) {
+                // FIX 2: Marcar fin de partida en la instancia Y en la variable local
+                gameOver = true;
+                this.gameOver = true;
+                messageContainer.style.color = '#f56565'; // Red
+                messageContainer.textContent = activeLangCode === 'es' 
+                    ? `😞 ¡PERDISTE! LA PALABRA ERA: ${secret}` 
+                    : `😞 GAME OVER. THE WORD WAS: ${secret}`;
+                this.destroy();
+                window.gameStarted = false;
+                showResetButton();
+                return;
+            }
+
+            updateGridDisplay();
+        };
+
+        // ----- HARDWARE INPUT INITIALIZATION -----
+        this.keydownListener = (e) => {
+            if (gameOver) return;
+
+            const key = e.key.toUpperCase();
+
+            if (key === 'ENTER') {
+                submitGuess();
+            } else if (key === 'BACKSPACE') {
+                if (currentLetterIndex > 0) {
+                    currentLetterIndex--;
+                    guesses[currentAttempt][currentLetterIndex] = "";
+                    updateGridDisplay();
+                }
+            } else if (/^[A-ZÑ]$/.test(key)) {
+                if (!window.gameStarted) {
+                    window.gameStarted = true;
+                }
+
+                if (key === 'Ñ' && activeLangCode === 'en') return;
+
+                if (currentLetterIndex < 5) {
+                    guesses[currentAttempt][currentLetterIndex] = key;
+                    currentLetterIndex++;
+                    updateGridDisplay();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', this.keydownListener);
     }
 }
 
