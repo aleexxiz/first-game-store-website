@@ -1,4 +1,4 @@
-# First Game Store Website 🎮
+# 🎮 Game Store - Live Demo
 
 [English](README.md) | [Español](README.es.md)
 
@@ -6,21 +6,21 @@
 
 <div id="español">
 
-## 📌 Sobre el Proyecto
-Este proyecto presenta una tienda de juegos en línea ficticia donde los usuarios pueden explorar juegos en una interfaz limpia y responsiva.
+This repository serves as the **Live Demo and Deployment** for my game projects.
+It was created to provide a visual representation of the games and a clean UI for demonstration purposes.
 
-Fue creado para practicar los fundamentos del front-end y comprender la estructura básica de un sitio web y su despliegue.
+## 🔗 Live Site
+You can explore the interface here: 
+👉 **[Live Demo](https://yarusd.github.io/first-game-store-website/)**
 
-## 🛠️ Tecnologías Usadas
-- HTML5
-- CSS3
+## 🚀 Experience the Logic
+While this repo handles the visual deployment, the **real magic** (Python logic, Game engines, and Automation) happens in the main repository.
 
-## 🚀 Despliegue
-Se creó un nuevo repositorio después de que problemas de despliegue impidieron que la versión anterior cargara correctamente.
+Check out the full source code and automation suite here:
+👉 **[Source Code & Automation Suite](https://github.com/yarusd/my-first-game-store)**
 
-## 📂 Estado del Proyecto
-Completado – Proyecto de demostración para fines de aprendizaje.
+## 🛠️ Tech Stack (Visuals)
+- **HTML5 & CSS3** for the Store Interface.
+- **JavaScript** for basic interactivity.
 
 </div>
-
----
