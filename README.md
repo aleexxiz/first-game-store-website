@@ -1,5 +1,11 @@
 # 🎮 Game Store - Live Demo
 
+[English](README.md) | [Español](README.es.md)
+
+---
+
+<div id="english">
+
 This repository serves as the **Live Demo and Deployment** for my game projects.
 It was created to provide a visual representation of the games and a clean UI for demonstration purposes.
 
@@ -16,3 +22,4 @@ Check out the full source code and automation suite here:
 ## 🛠️ Tech Stack (Visuals)
 - **HTML5 & CSS3** for the Store Interface.
 - **JavaScript** for basic interactivity.
+</div>
