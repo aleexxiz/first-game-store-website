@@ -1,26 +1,25 @@
-# 🎮 Game Store - Live Demo
+# 🎮 Tienda de Juegos - Demo en Vivo
 
-[English](README.md) | [Español](README.es.md)
+[English](README.md) | [Español](https://www.google.com/search?q=README.es.md)
 
 ---
 
-<div id="español">
+Este repositorio sirve como **Demo en Vivo y Despliegue** para mis proyectos de juegos.
+Fue creado para proporcionar una representación visual de los juegos y una interfaz limpia con fines de demostración.
 
-This repository serves as the **Live Demo and Deployment** for my game projects.
-It was created to provide a visual representation of the games and a clean UI for demonstration purposes.
+## 🔗 Sitio en Vivo
 
-## 🔗 Live Site
-You can explore the interface here: 
-👉 **[Live Demo](https://yarusd.github.io/first-game-store-website/)**
+Puedes explorar la interfaz aquí:
+👉 **[Demo en Vivo](https://www.google.com/search?q=https://yarusd.github.io/first-game-store-website/)**
 
-## 🚀 Experience the Logic
-While this repo handles the visual deployment, the **real magic** (Python logic, Game engines, and Automation) happens in the main repository.
+## 🚀 Experimenta la Lógica
 
-Check out the full source code and automation suite here:
-👉 **[Source Code & Automation Suite](https://github.com/yarusd/my-first-game-store)**
+Aunque este repositorio gestiona el despliegue visual, la **verdadera magia** (lógica de Python, motores de juegos y automatización) ocurre en el repositorio principal.
 
-## 🛠️ Tech Stack (Visuals)
-- **HTML5 & CSS3** for the Store Interface.
-- **JavaScript** for basic interactivity.
+Consulta el código fuente completo y la suite de automatización aquí:
+👉 **[Código Fuente y Suite de Automatización]()**
 
-</div>
+## 🛠️ Stack Tecnológico (Visual)
+
+* **HTML5 y CSS3** para la interfaz de la tienda.
+* **JavaScript** para la interactividad básica.
