@@ -457,4 +457,7 @@ body::before {
     color: var(--neon-yellow);
     font-size: 1.2rem;
     text-shadow: 0 0 5px var(--neon-yellow);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }

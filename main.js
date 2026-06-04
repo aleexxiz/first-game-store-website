@@ -12,7 +12,7 @@ function formatText(template, params = {}) {
 // Global flag to prevent language exploits mid-game
 window.gameStarted = false;
 
-// FIX 1: Si el juego está en curso, simplemente no hacer nada (sin mensaje invasivo)
+// FIX 1: If the game is running, do nothing (no invasive message)
 window.changeLanguage = async function (lang) {
     if (window.gameStarted) return;
     if (window.hub) await window.hub.setLanguage(lang);
@@ -139,14 +139,14 @@ class GuessTheWord {
         this.currentLang = window.hub?.langData || { games: { guessword: { title: "WORDLE" } } };
         this.keyElements = {}; 
         this.keydownListener = null;
-        // FIX 2: Estado de fin de partida a nivel de instancia
+        // FIX 2: Game-over state at the instance level
         this.gameOver = false;
 
         this.initGuessWord(this.currentLang);
     }
 
     updateLanguage() {
-        // FIX 2: Si la partida terminó, no reiniciar el juego al cambiar idioma
+        // FIX 2: If the game has ended, do not restart it when changing language
         if (this.gameOver) return;
         this.currentLang = window.hub?.langData || this.currentLang;
         this.initGuessWord(this.currentLang);
@@ -160,7 +160,7 @@ class GuessTheWord {
 
     async initGuessWord(lang) {
         this.destroy();
-        // FIX 2: Resetear el estado de fin de partida al iniciar una nueva
+        // FIX 2: Reset the game-over flag when starting a new game
         this.gameOver = false;
 
         const t = lang.games?.guessword || {};    
@@ -257,9 +257,10 @@ class GuessTheWord {
             rowEl.style.cssText = 'display:flex; gap:6px;';
             row.forEach(letter => {
                 const key = document.createElement('button');
+                key.type = 'button';
                 key.className = 'gw-key';
                 key.textContent = letter;
-                key.style.cssText = 'background-color:#2d3748; color:#fff; border:none; padding:10px 12px; font-weight:bold; border-radius:4px; min-width:32px; font-size:0.9rem;';
+                key.style.cssText = 'padding:10px 12px; font-weight:bold; border-radius:4px; min-width:32px; font-size:0.9rem;';
                 rowEl.appendChild(key);
                 this.keyElements[letter] = key;
             });
@@ -286,7 +287,7 @@ class GuessTheWord {
             resetBtn.textContent = activeLangCode === 'es' ? 'JUGAR DE NUEVO' : 'PLAY AGAIN';
             resetBtn.style.padding = '10px 20px';
             resetBtn.onclick = () => {
-                // FIX 2: Resetear el flag de instancia antes de reiniciar
+                // FIX 2: Reset the instance game-over flag before restarting
                 this.gameOver = false;
                 this.initGuessWord(this.currentLang);
             };
@@ -326,24 +327,28 @@ class GuessTheWord {
                 if (rowStatuses[i] === 'correct') {
                     cell.style.backgroundColor = '#2f855a'; 
                     cell.style.borderColor = '#2f855a';
-                    if (keyBtn) keyBtn.style.backgroundColor = '#2f855a';
+                    if (keyBtn) {
+                        keyBtn.classList.remove('wrong-position', 'miss');
+                        keyBtn.classList.add('hit');
+                    }
                 } else if (rowStatuses[i] === 'present') {
                     cell.style.backgroundColor = '#dd6b20'; 
                     cell.style.borderColor = '#dd6b20';
-                    if (keyBtn && keyBtn.style.backgroundColor !== 'rgb(47, 133, 90)') {
-                        keyBtn.style.backgroundColor = '#dd6b20';
+                    if (keyBtn) {
+                        keyBtn.classList.remove('hit', 'miss');
+                        keyBtn.classList.add('wrong-position');
                     }
                 } else {
                     cell.style.backgroundColor = '#4a5568'; 
                     cell.style.borderColor = '#4a5568';
-                    if (keyBtn && !keyBtn.style.backgroundColor) {
-                        keyBtn.style.backgroundColor = '#1a202c'; 
+                    if (keyBtn && !keyBtn.classList.contains('hit') && !keyBtn.classList.contains('wrong-position')) {
+                        keyBtn.classList.add('miss');
                     }
                 }
             }
 
             if (currentWord === secret) {
-                // FIX 2: Marcar fin de partida en la instancia Y en la variable local
+                // FIX 2: Mark game over on both the local and instance flags
                 gameOver = true;
                 this.gameOver = true;
                 messageContainer.style.color = '#48bb78'; // Green
@@ -360,7 +365,7 @@ class GuessTheWord {
             currentLetterIndex = 0;
 
             if (currentAttempt >= maxAttempts) {
-                // FIX 2: Marcar fin de partida en la instancia Y en la variable local
+                // FIX 2: Mark game over on both the local and instance flags
                 gameOver = true;
                 this.gameOver = true;
                 messageContainer.style.color = '#f56565'; // Red
@@ -451,7 +456,7 @@ class BattleGame {
         element.innerText = "";
         let i = 0;
         const interval = setInterval(() => {
-            element.innerText += text[i];
+            element.innerText += text.charAt(i);
             i++;
             if (i >= text.length) clearInterval(interval);
         }, 30);
